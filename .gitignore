@@ -1,0 +1,6 @@
+data/*.gz
+results/*
+!results/GSE10072_dgea.csv
+!results/GSE10072_samples.csv
+__pycache__/
+.venv/
