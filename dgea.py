@@ -5,7 +5,7 @@ from io import StringIO
 
 import numpy as np
 import pandas as pd
-from scipy.stats import ttest_ind, ttest_rel
+from scipy.stats import ttest_rel
 
 
 def benjamini_hochberg(p_values):
@@ -131,7 +131,7 @@ def log2_transform(matrix):
 
 
 def classify_gse10072(metadata):
-    """Use all tumor and normal tissue profiles in the unpaired study."""
+    """Keep subject IDs with exactly one tumor and one normal profile."""
     rows = []
     for row in metadata.itertuples(index=False):
         source = row.source.lower()
@@ -142,8 +142,15 @@ def classify_gse10072(metadata):
         else:
             continue
         subject = re.search(r"GT\d+", row.title)
-        rows.append((row.gsm, group, subject.group(0) if subject else pd.NA))
-    return pd.DataFrame(rows, columns=["gsm", "group", "subject_id"])
+        if subject:
+            rows.append((row.gsm, subject.group(0), group))
+
+    frame = pd.DataFrame(rows, columns=["gsm", "pair", "group"])
+    counts = frame.groupby(["pair", "group"]).size().unstack(fill_value=0)
+    keep = counts[
+        (counts.get("normal", 0) == 1) & (counts.get("tumor", 0) == 1)
+    ].index
+    return frame[frame.pair.isin(keep)].copy()
 
 
 def classify_gse7670(metadata):
@@ -192,20 +199,6 @@ def _results_table(matrix, normal, tumor, statistic, p_values, gene_titles):
             ),
         )
     return result.sort_values(["p_adj_bh", "p_value"], na_position="last").reset_index(drop=True)
-
-
-def analyze_unpaired(matrix, samples, gene_titles):
-    """Run a two-sided Welch t-test for independent tumor and normal samples."""
-    normal = matrix[samples.loc[samples.group.eq("normal"), "gsm"]]
-    tumor = matrix[samples.loc[samples.group.eq("tumor"), "gsm"]]
-    statistic, p_values = ttest_ind(
-        tumor,
-        normal,
-        axis=1,
-        equal_var=False,
-        nan_policy="omit",
-    )
-    return _results_table(matrix, normal, tumor, statistic, p_values, gene_titles)
 
 
 def analyze_paired(matrix, samples, gene_titles):

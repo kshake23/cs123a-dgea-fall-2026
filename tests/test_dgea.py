@@ -1,4 +1,6 @@
+import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -10,6 +12,7 @@ from dgea import (
     classify_gse7670,
     collapse_probes_to_genes,
     log2_transform,
+    read_platform_annotation,
 )
 
 
@@ -34,17 +37,30 @@ class AnalysisTests(unittest.TestCase):
         result = classify_gse7670(metadata)
         self.assertEqual(result.pair.tolist(), ["1", "1"])
 
-    def test_gse10072_keeps_all_tumor_and_normal_samples(self):
+    def test_gse10072_keeps_only_complete_unique_pairs(self):
         metadata = pd.DataFrame(
             {
-                "gsm": ["a", "b", "c", "d"],
-                "title": ["Tumor_GT01", "Normal_GT01", "Tumor_GT02", "other"],
-                "source": ["Adenocarcinoma", "Normal Lung Tissue", "Adenocarcinoma", "cell line"],
+                "gsm": ["a", "b", "c", "d", "e"],
+                "title": [
+                    "Tumor_GT01",
+                    "Normal_GT01",
+                    "Tumor_GT02",
+                    "Tumor_GT03",
+                    "Tumor replicate_GT03",
+                ],
+                "source": [
+                    "Adenocarcinoma",
+                    "Normal Lung Tissue",
+                    "Adenocarcinoma",
+                    "Adenocarcinoma",
+                    "Adenocarcinoma",
+                ],
             }
         )
         result = classify_gse10072(metadata)
-        self.assertEqual(result.gsm.tolist(), ["a", "b", "c"])
-        self.assertEqual(result.group.tolist(), ["tumor", "normal", "tumor"])
+        self.assertEqual(result.gsm.tolist(), ["a", "b"])
+        self.assertEqual(result.pair.unique().tolist(), ["GT01"])
+        self.assertEqual(set(result.group), {"normal", "tumor"})
 
     def test_log2_transform_returns_log_scale(self):
         matrix = pd.DataFrame({"s1": [1.0, 4.0], "s2": [2.0, 8.0]})
@@ -55,7 +71,28 @@ class AnalysisTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             log2_transform(pd.DataFrame({"s1": [0.0, 1.0]}))
 
-    def test_probe_mapping_excludes_ambiguous_and_averages_duplicates(self):
+    def test_platform_annotation_marks_ambiguous_symbols_unmapped(self):
+        content = "\n".join(
+            [
+                "^Annotation",
+                "!Annotation_date = Aug 09 2016",
+                "ID\tGene title\tGene symbol\tGene ID",
+                "p1\tgene A\tA\t1",
+                "p2\tgene A or B\tA///B\t1///2",
+                "p3\t---\t---\t---",
+                "!platform_table_end",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "GPL96.annot"
+            path.write_text(content, encoding="utf-8")
+            actual = read_platform_annotation(path).set_index("probe_id")
+
+        self.assertEqual(actual.loc["p1", "gene_symbol"], "A")
+        self.assertTrue(pd.isna(actual.loc["p2", "gene_symbol"]))
+        self.assertTrue(pd.isna(actual.loc["p3", "gene_symbol"]))
+
+    def test_probe_mapping_averages_duplicates_and_ignores_unmapped(self):
         matrix = pd.DataFrame(
             {"s1": [2.0, 4.0, 9.0], "s2": [6.0, 8.0, 10.0]},
             index=["p1", "p2", "p3"],
