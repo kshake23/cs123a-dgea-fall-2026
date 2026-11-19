@@ -5,9 +5,9 @@ We’re building a small Python tool to compare gene activity in lung tumor and 
 ## Current status
 
 - Kareem’s analysis code runs on GSE10072 and GSE7670.
-- GSE10072 currently uses 33 complete tumor/normal pairs; GSE7670 uses 27 pairs.
-- The output tables and sample lists are in `results/`; some are checked into the repo.
-- Veedhi’s review of GSE7670 and presentation figures are still pending.
+- The primary methods use paired tests with 33 complete GSE10072 pairs and 27 complete GSE7670 pairs.
+- Probe sets are mapped to gene symbols before testing.
+- Presentation figures are being kept for a later review increment.
 - The team still needs to review the findings, decide what to show, and finish the presentation.
 
 ## Get started
@@ -20,19 +20,20 @@ python scripts/run_analysis.py
 python -m unittest discover -s tests
 ```
 
-The script downloads each dataset’s GEO expression file into `data/`, then saves the sample lists, test results, and plots in `results/`. GEO has already processed the expression values, and we analyze each study separately. Plots are created on your computer; we’ll decide which ones to use after checking the results.
+The script downloads each dataset’s GEO expression file and the GPL96 annotation into `data/`, then saves sample lists and gene-level test results in `results/`. Figures are intentionally outside this first methods increment.
 
 ## What the analysis does
 
-For GSE10072, the current version matches tumor and normal samples that share a GEO `GT` ID, then compares the 33 complete pairs. The 41 other samples don’t have a unique match, so they’re left out of this test. For GSE7670, it uses 27 numbered tumor/normal pairs and leaves out cell lines, mixtures, and other unpaired samples. The code tests each array probe and adjusts for the many tests it runs. We still need to check these choices and results as a team.
+For GSE10072, the primary analysis matches tumor and normal samples that share a GEO `GT` ID, then compares the 33 complete pairs. The other 41 profiles do not have a unique matched counterpart, so they are excluded from the paired test. An all-sample Welch test could be added later as a secondary sensitivity analysis if the team decides it is useful. GSE7670 uses 27 numbered tumor/adjacent-normal pairs and excludes cell lines, mixtures, and other unpaired samples.
 
-The current tables show results for array probes. Several probes can point to the same gene, and we haven’t decided how to combine them yet. So these aren’t our final gene-level results. We should check the sample lists and tables together before using results in the presentation.
+The workflow uses GEO’s GPL96 annotation dated August 9, 2016. Blank mappings, `---`, and mappings containing multiple symbols separated by `///` are excluded. When multiple retained probes map to the same gene symbol, their expression values are averaged before the paired test. Benjamini-Hochberg adjustment is applied to the gene-level p-values.
 
 ## Data sources
 
 - GSE10072: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE10072
 - GSE7670: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE7670
+- GPL96 annotation: https://ftp.ncbi.nlm.nih.gov/geo/platforms/GPLnnn/GPL96/annot/GPL96.annot.gz
 
 Both use the Affymetrix GPL96 platform. More details about which samples are included are in `docs/data_notes.md`.
 
-This is a class project for learning, not a medical tool. We should write final project prose in our own words and follow the course rules on AI use.
+This is a class project for learning, not a medical or diagnostic tool.
