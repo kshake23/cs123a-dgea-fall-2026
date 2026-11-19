@@ -170,11 +170,6 @@ def classify_gse7670(metadata):
 
 def _results_table(matrix, normal, tumor, statistic, p_values, gene_titles):
     difference = tumor.mean(axis=1) - normal.mean(axis=1)
-    difference_sd = (
-        (tumor.to_numpy() - normal.to_numpy()).std(axis=1, ddof=1)
-        if normal.shape == tumor.shape
-        else None
-    )
     result = pd.DataFrame(
         {
             "gene_symbol": matrix.index,
@@ -187,17 +182,6 @@ def _results_table(matrix, normal, tumor, statistic, p_values, gene_titles):
             "p_adj_bh": benjamini_hochberg(p_values),
         }
     )
-    if difference_sd is not None:
-        result.insert(
-            5,
-            "cohens_dz",
-            np.divide(
-                difference.to_numpy(),
-                difference_sd,
-                out=np.full(len(difference), np.nan),
-                where=difference_sd != 0,
-            ),
-        )
     return result.sort_values(["p_adj_bh", "p_value"], na_position="last").reset_index(drop=True)
 
 

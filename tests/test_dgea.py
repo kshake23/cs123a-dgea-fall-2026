@@ -133,6 +133,55 @@ class AnalysisTests(unittest.TestCase):
         self.assertAlmostEqual(result.loc["UP", "log2_fold_change_tumor_vs_normal"], 1.0)
         self.assertAlmostEqual(result.loc["DOWN", "log2_fold_change_tumor_vs_normal"], -2.0)
 
+    def test_paired_analysis_matches_known_t_statistic_and_p_value(self):
+        # Tumor minus normal differences are [1, 2, 3, 4]. Their mean is 2.5,
+        # sample SD is sqrt(5/3), and t = 2.5 / (sqrt(5/3) / sqrt(4)).
+        matrix = pd.DataFrame(
+            {
+                "normal_3": [30.0],
+                "tumor_1": [11.0],
+                "normal_4": [40.0],
+                "tumor_3": [33.0],
+                "normal_1": [10.0],
+                "tumor_4": [44.0],
+                "normal_2": [20.0],
+                "tumor_2": [22.0],
+            },
+            index=["KNOWN"],
+        )
+        samples = pd.DataFrame(
+            {
+                "gsm": [
+                    "tumor_3",
+                    "normal_1",
+                    "tumor_4",
+                    "normal_2",
+                    "normal_3",
+                    "tumor_1",
+                    "tumor_2",
+                    "normal_4",
+                ],
+                "pair": ["3", "1", "4", "2", "3", "1", "2", "4"],
+                "group": [
+                    "tumor",
+                    "normal",
+                    "tumor",
+                    "normal",
+                    "normal",
+                    "tumor",
+                    "tumor",
+                    "normal",
+                ],
+            }
+        )
+        titles = pd.Series({"KNOWN": "known paired differences"})
+
+        result = analyze_paired(matrix, samples, titles).iloc[0]
+
+        self.assertAlmostEqual(result.t_statistic, 3.872983346207417)
+        self.assertAlmostEqual(result.p_value, 0.030466291662170977)
+        self.assertNotIn("cohens_dz", result.index)
+
 
 if __name__ == "__main__":
     unittest.main()
