@@ -7,3 +7,6 @@ results/*
 !results/*.png
 __pycache__/
 .venv/
+.mplconfig/
+.deck-build/
+.codex-finalizer/
