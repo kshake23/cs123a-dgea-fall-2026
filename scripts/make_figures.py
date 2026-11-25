@@ -47,7 +47,7 @@ def make_volcano(accession):
     y = -np.log10(table["p_adj_bh"].clip(lower=np.finfo(float).tiny))
     highlighted = (table["p_adj_bh"] < FDR_CUTOFF) & (x.abs() >= FC_CUTOFF)
 
-    fig, ax = plt.subplots(figsize=(7, 5), facecolor=COLORS["background"])
+    fig, ax = plt.subplots(figsize=(8, 4.6), facecolor=COLORS["background"])
     _style_axes(ax)
     ax.scatter(x[~highlighted], y[~highlighted], s=7, alpha=0.25, color=COLORS["muted"])
     ax.scatter(
@@ -56,15 +56,15 @@ def make_volcano(accession):
         s=8,
         alpha=0.55,
         color=COLORS["orange"],
-        label="FDR < 0.05 and |log2FC| >= 1",
+        label="FDR < .05; |log2FC| >= 1",
     )
     ax.axhline(-np.log10(FDR_CUTOFF), color=COLORS["text"], linestyle="--", linewidth=1)
     ax.axvline(-FC_CUTOFF, color=COLORS["text"], linestyle=":", linewidth=1)
     ax.axvline(FC_CUTOFF, color=COLORS["text"], linestyle=":", linewidth=1)
     ax.set_xlabel("log2 fold change (tumor - normal)")
     ax.set_ylabel("-log10(BH-adjusted p-value)")
-    ax.set_title(f"{accession} gene-level differential expression", loc="left", weight="bold")
-    ax.legend(frameon=False, markerscale=2, loc="upper right")
+    ax.set_title(f"{accession} differential expression", loc="left", weight="bold")
+    ax.legend(frameon=False, markerscale=2, fontsize=9, loc="upper right", borderaxespad=0.4)
     fig.tight_layout()
     fig.savefig(RESULTS / f"{accession}_volcano.png", dpi=180, facecolor=fig.get_facecolor())
     plt.close(fig)

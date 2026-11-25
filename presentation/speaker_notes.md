@@ -30,7 +30,7 @@ The workflow starts from GEO's processed series matrices and the GPL96 annotatio
 
 In GSE10072 we tested 12,502 genes across 33 matched pairs. A total of 6,223 genes have adjusted p-values below 0.05. The orange points are the 436 genes that also have an absolute log2 fold change of at least 1. Examples with higher tumor expression include SPP1, MMP1, and COL11A1. Examples with lower tumor expression include AGER, FABP4, and SFTPC.
 
-## Slide 6: GSE7670 independently recovers the pattern
+## Slide 6: GSE7670: second cohort
 
 **Speaker: Veedhi, about 1 minute**
 
