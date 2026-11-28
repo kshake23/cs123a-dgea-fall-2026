@@ -84,6 +84,12 @@ def make_concordance():
     same_direction = np.sign(x) == np.sign(y)
     concordant = both & same_direction
     rho, _ = spearmanr(x, y)
+    same_direction_count = int(concordant.sum())
+    print(
+        f"Across {len(joined):,} shared genes: Spearman rho = {rho:.3f}; "
+        f"{both.sum():,} significant in both studies; "
+        f"{same_direction_count:,} significant in both with the same direction."
+    )
 
     fig, ax = plt.subplots(figsize=(7, 5.4), facecolor=COLORS["background"])
     _style_axes(ax)
@@ -102,13 +108,21 @@ def make_concordance():
     ax.axhline(0, color=COLORS["text"], linewidth=0.7, alpha=0.5)
     ax.axvline(0, color=COLORS["text"], linewidth=0.7, alpha=0.5)
 
+    label_offsets = {"FABP4": (-10, 9), "SFTPC": (12, 0)}
     for gene in ("SPP1", "MMP1", "COL11A1", "AGER", "FABP4", "SFTPC"):
         if gene in joined.index:
+            offset = label_offsets.get(gene, (4, 4))
             ax.annotate(
                 gene,
                 (x.loc[gene], y.loc[gene]),
-                xytext=(4, 4),
+                xytext=offset,
                 textcoords="offset points",
+                ha="right" if offset[0] < 0 else "left",
+                arrowprops=(
+                    {"arrowstyle": "-", "color": COLORS["text"], "lw": 0.6}
+                    if gene in label_offsets
+                    else None
+                ),
                 fontsize=8,
                 color=COLORS["text"],
             )
@@ -116,7 +130,7 @@ def make_concordance():
     ax.text(
         0.03,
         0.96,
-        f"Spearman rho = {rho:.3f}\n3,655 genes agree in direction",
+        f"Spearman rho = {rho:.3f}\n{same_direction_count:,} genes agree in direction",
         transform=ax.transAxes,
         va="top",
         color=COLORS["text"],
