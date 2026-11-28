@@ -1,23 +1,19 @@
 # Paired differential gene expression in lung adenocarcinoma
 
-> **Working draft (November 24, 2026):** The analysis and current figures are in the repo, but we still need to go over the results and finish the written explanation together. We may update the interpretation and presentation after that review.
-
 For this CS 123A project, we compare tumor and normal lung samples from two public studies. We analyze each study on its own, then check which expression changes show up in both.
 
-## What the current results show
+## Results
 
-In the current run, 3,659 genes are significant in both studies using a Benjamini-Hochberg false discovery rate (FDR) below 0.05. Of those, 3,655 change in the same direction. The estimated fold changes across the two studies have a Spearman correlation of 0.783.
+Of the 12,502 genes we tested in each study, 3,659 are significant in both studies using a Benjamini-Hochberg false discovery rate (FDR) below 0.05. Of those, 3,655 change in the same direction. The estimated fold changes across the two studies have a Spearman correlation of 0.783.
 
-Some examples with higher tumor expression in both studies are `SPP1`, `MMP1`, and `COL11A1`. Some examples with lower tumor expression are `AGER`, `FABP4`, and `SFTPC`. We still need to review these results and decide how to describe them in the presentation.
-
-## Current results for review
+Some examples with higher tumor expression in both studies are `SPP1`, `MMP1`, and `COL11A1`. Some examples with lower tumor expression are `AGER`, `FABP4`, and `SFTPC`. In the 27 matched GSE7670 pairs, `AGER` expression was lower in all 27 tumor samples and `SPP1` expression was higher in 26. The paired plots show the individual patients behind those averages.
 
 | Dataset | Matched pairs | Genes tested | BH FDR < 0.05 | FDR < 0.05 and abs(log2FC) >= 1 |
 |---|---:|---:|---:|---:|
 | GSE10072 | 33 | 12,502 | 6,223 | 436 |
 | GSE7670 | 27 | 12,502 | 4,366 | 1,123 |
 
-The last column only marks larger changes in the volcano plots. For the analysis, a gene is considered significant when its BH FDR is below 0.05. These counts come from the current code and should be reviewed together before we use them as final presentation claims.
+We use BH FDR below 0.05 to call a gene significant. The last column applies an additional twofold cutoff in either direction for the volcano plot highlights.
 
 ## Analysis design
 
@@ -27,7 +23,7 @@ For GSE7670, we use 27 numbered tumor and adjacent-normal patient pairs. Cell li
 
 Both datasets use the Affymetrix GPL96 platform. Probes are mapped using GEO's GPL96 annotation dated August 9, 2016. Blank and ambiguous gene-symbol mappings are removed, and multiple retained probes for the same gene are averaged. Each gene is tested with a two-sided paired t-test, followed by Benjamini-Hochberg correction across genes. More detail is in [`docs/data_notes.md`](docs/data_notes.md).
 
-## Figures currently in the repo
+## Figures
 
 - [`results/GSE10072_volcano.png`](results/GSE10072_volcano.png): effect size and adjusted significance for GSE10072
 - [`results/GSE7670_volcano.png`](results/GSE7670_volcano.png): effect size and adjusted significance for GSE7670
@@ -54,24 +50,11 @@ The analysis script downloads the GEO series matrices and GPL96 annotation into 
 - `scripts/make_figures.py`: creates the volcano, paired-patient, and concordance figures
 - `tests/test_dgea.py`: checks pairing, transformations, annotation rules, statistics, and FDR adjustment
 - `results/`: sample manifests, result tables, and final figures
-- `presentation/`: presentation deck and speaker notes
-
-## Presentation split
-
-- Kareem: project motivation, datasets, sample pairing, and analysis workflow
-- Veedhi: dataset results, matched-patient examples, cross-dataset validation, conclusion, and limitations
-- Both: final review and questions
-
-## Still to finish
-
-- Review the results and figures together and agree on what to highlight.
-- Finish the written explanation and update this README if our review changes anything.
-- Each of us needs to submit the GitHub repository link before presenting.
-- Veedhi's latest email says Canvas showed our DGEA presentation slot on Monday, November 30. Check Canvas again before we present.
+- [`presentation/`](presentation/): PowerPoint and speaker notes
 
 ## Interpretation and limits
 
-The agreement between independent cohorts supports a reproducible lung adenocarcinoma expression signature, but this is an observational class project. It uses processed microarray data from one older platform, does not adjust for clinical covariates, and does not establish that any gene causes cancer. The results are not a medical or diagnostic tool.
+The agreement across the two cohorts suggests that many tumor-associated expression changes reproduce in these datasets. Both cohorts use the same microarray platform, and the analysis starts from the processed expression values in GEO. Differences in tumor and normal tissue composition may contribute to the measured changes. We did not adjust for clinical factors such as smoking history or stage. This comparison describes associations between tissue type and expression. Testing causal roles or clinical use would require a separate study.
 
 ## Data sources
 
