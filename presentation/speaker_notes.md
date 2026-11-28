@@ -56,8 +56,8 @@ The two independent cohorts support a reproducible lung adenocarcinoma expressio
 
 ## Timing and handoff
 
-- Kareem: slides 1 through 4, about 4.5 to 5.5 minutes
-- Veedhi: slides 5 through 9, about 5.5 to 6.5 minutes
+- Kareem: slides 1 through 4. Rehearse to the 5–7 minute window.
+- Veedhi: slides 5 through 9. [Timed script and Q&A](veedhi_script.md) target about 6 minutes.
 - Both: questions
 
 Practice the handoff after slide 4: "Veedhi will walk through what we found in each dataset and how well the results reproduced."
